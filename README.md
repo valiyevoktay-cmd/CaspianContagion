@@ -5,12 +5,6 @@
 ![Math](https://img.shields.io/badge/Model-Hawkes_Process-blue)
 ![Tech](https://img.shields.io/badge/UI-WebGL_Optimized-FF4B4B)
 
-## 🏛 The Philosophy: Price as the Shadow of Liquidity
-
-Standard financial models often treat market movement as a series of independent, exogenous shocks. In reality, price discovery is a mechanical process governed by the fragile architecture of the Limit Order Book (LOB). 
-
-**Caspian Contagion** was born from a fundamental observation: markets do not merely move; they *breathe* and, occasionally, *suffocate*. Drawing inspiration from the Austrian School of Economics' focus on micro-level human action and modern stochastic calculus, this project deconstructs the precise moments when liquidity provision fails. We operate on the premise that price is merely the shadow cast by the underlying flow of orders. When that flow becomes directionally toxic, the shadow lengthens, and the market enters a state of contagion.
-
 ## 🔬 Academic Foundation
 
 Caspian Contagion is engineered to detect and quantify two specific microstructural phenomena in real-time cryptocurrency markets:
