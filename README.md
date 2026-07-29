@@ -1,67 +1,124 @@
-#  Caspian Contagion
+# Caspian Contagion
 > **Decoding Market Toxicity through Self-Exciting Processes**
 
-![Status](https://img.shields.io/badge/Status-Live_Terminal-success)
-![Math](https://img.shields.io/badge/Model-Hawkes_Process-blue)
-![Tech](https://img.shields.io/badge/UI-WebGL_Optimized-FF4B4B)
+<p align="left">
+  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/Model-Hawkes_Process-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/UI-WebGL_Optimized-FF4B4B?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" />
+</p>
+
+> An analytical engine that detects **market toxicity** and **self-exciting order flow contagion** in real-time cryptocurrency markets. Streams Binance L2 WebSocket data, computes Order Flow Imbalance, calibrates a continuous Hawkes Process via MLE, and triggers a protective **Killswitch** when the Contagion Condition Index signals adverse selection risk.
+
+---
 
 ## 🔬 Academic Foundation
 
-Caspian Contagion is engineered to detect and quantify two specific microstructural phenomena in real-time cryptocurrency markets:
+Caspian Contagion quantifies two specific microstructural phenomena:
 
-1. **Order Flow Imbalance (OFI):** Moving beyond simple volume aggregation, the engine computes vectorized multi-level OFI to measure the net pressure exerted by aggressive participants against resting limit orders.
-2. **Hawkes Process (The Contagion Index):** Market shocks are inherently self-exciting. Utilizing a continuous Hawkes process, the model calculates the **Contagion Condition Index (CCI)**. When this metric crosses a critical threshold, it mathematically signals that the market is no longer in a random walk, but trapped in an endogenous feedback loop of adverse selection.
+1. **Order Flow Imbalance (OFI):** Vectorized multi-level computation measuring the net pressure of aggressive participants against resting limit orders — beyond naive volume aggregation.
+2. **Hawkes Process (Contagion Condition Index):** Markets under informed flow exhibit self-exciting dynamics. The Hawkes model quantifies this via the **CCI = α/β**. When CCI ≥ 1.0, the market is in an endogenous adverse selection feedback loop — a mathematically confirmed toxic state for passive market-making.
 
-##  Core Architecture & Features
+---
 
-* **High-Throughput Ingestion:** A persistent, thread-safe global bridge that processes live Binance L2 WebSocket streams (`@depth20@100ms`) with minimal computational overhead.
-* **Zero-Flicker HFT Terminal:** An institutional-grade UI built on Streamlit. It achieves autonomous 1Hz rendering via static DOM anchoring (`uirevision='constant'`) and WebGL-accelerated Plotly charts, completely eliminating the visual tearing common in Python dashboards.
-* **Autonomous Risk Engine:** A protective Killswitch that halts virtual market-making operations when the CCI dictates extreme microstructural decay, preserving capital against informed traders.
-* **Execution Analytics:** Real-time tracking of Alpha generation, comparing a "Naive" continuous routing strategy against the contagion-aware protective logic.
+## 🧮 Mathematical Framework
 
-##  Technical Stack
+### Hawkes Process Intensity
 
-* **Language:** Python 3.10+
-* **Concurrency:** `asyncio` for WebSocket connections, `threading` for strict ingestion-render separation.
-* **Quantitative Processing:** `NumPy` & `Pandas` for nanosecond-precision vectorized mathematics.
-* **Visualization:** `Plotly` (WebGL / SVG) & `Streamlit` (Fragment-free isolated state loops).
+The conditional intensity function of the Hawkes process:
 
-##  Getting Started
+$$\lambda(t) = \mu + \alpha \sum_{t_i < t} e^{-\beta(t - t_i)}$$
 
-### 1. Installation
-Clone the repository and set up an isolated environment:
-```bash
-git clone [https://github.com/valiyevoktay-cmd/CaspianContagion.git](https://github.com/valiyevoktay-cmd/CaspianContagion.git)
-cd CaspianContagion
-python -m venv venv
+| Parameter | Meaning |
+| :--- | :--- |
+| $\mu$ | Baseline arrival rate (exogenous flow) |
+| $\alpha$ | Excitation magnitude (shock size) |
+| $\beta$ | Decay rate (mean-reversion speed) |
+| $\alpha/\beta$ | **Contagion Condition Index (CCI)** — branching ratio |
 
-# Activate the virtual environment
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+### Recursive Log-Likelihood (O(N) computation)
 
-# Install dependencies
-pip install -r requirements.txt
+$$R(i) = e^{-\beta \Delta t}(1 + R(i-1))$$
+
+Parameters $(\mu, \alpha, \beta)$ calibrated via **L-BFGS-B** optimizer (`scipy.optimize.minimize`).
+
+### Killswitch Trigger
+
+$$\text{KILLSWITCH} \iff CCI = \frac{\alpha}{\beta} \geq 1.0$$
+
+---
+
+## 🏗 Core Architecture
+
+```
+CaspianContagion/
+├── src/
+│   ├── config.py              # Global constants & pipeline settings
+│   ├── module_1_ingestion.py  # Asyncio Binance L2 WebSocket ingester
+│   ├── module_2_hawkes.py     # Hawkes MLE Calibrator (L-BFGS-B, O(N) recursive kernel)
+│   ├── module_3_dynamics.py   # OFI & microstructure calculator
+│   ├── module_4_risk.py       # CCI computation & Killswitch engine
+│   └── module_5_execution.py  # Naive vs contagion-aware execution simulator
+├── ui/
+│   └── dashboard.py           # Zero-flicker Streamlit HFT terminal (WebGL Plotly)
+├── main.py                    # Pipeline launcher & background thread bridge
+└── requirements.txt
 ```
 
-### 2. Launching the Terminal
-Initialize the high-frequency pipeline:
+**Key engineering decisions:**
+- **Thread-safe global bridge** separating WebSocket ingestion from Streamlit rendering
+- **Zero-flicker UI** via `uirevision='constant'` on Plotly — eliminates DOM re-render tearing at 1Hz refresh
+- **O(N) recursive kernel** avoids $O(N^2)$ naive double-sum for Hawkes log-likelihood
+
+---
+
+## ⚙️ Tech Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| Language | Python 3.10+ |
+| Concurrency | `asyncio`, `threading` |
+| Quantitative | `numpy`, `pandas`, `scipy` (L-BFGS-B) |
+| Visualization | `plotly` (WebGL), `streamlit` |
+| Data Source | Binance WebSocket `@depth20@100ms` |
+
+---
+
+## 🚀 Quick Start
+
 ```bash
+# 1. Clone
+git clone https://github.com/valiyevoktay-cmd/CaspianContagion.git
+cd CaspianContagion
+
+# 2. Create isolated environment
+python -m venv venv
+source venv/bin/activate      # Windows: venv\Scripts\activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Launch HFT terminal
 streamlit run main.py
 ```
-*Note: The system requires an initial warm-up phase to construct the localized LOB baseline before bridging to the live rendering engine.*
+
+> **Note:** Allow 30–60 seconds for the initial warm-up phase. The system builds a localized LOB baseline before bridging to the live rendering engine.
+
+---
 
 ## 🗺 Research Roadmap
 
-The next evolutionary phase of Caspian Contagion involves deepening the quantitative metrics and visual diagnostics:
-
-* [ ] **Markout Analytics:** Implementing post-trade execution quality metrics (Price movement at T+100ms/500ms) to empirically validate the Alpha generated by the Killswitch.
-* [ ] **LOB Heatmaps:** Utilizing 2D-density shaders to visualize hidden liquidity walls and spoofing patterns prior to Hawkes-triggered flash crashes.
-* [ ] **Dynamic Slippage Models:** Translating the `POTENTIAL SLIPPAGE` metric into real-time Basis Points (BPS) using non-linear order book depth functions.
-
-## 🤝 Contribution & Dialogue
-
-This project is an evolving experiment in quantitative finance and market microstructure. Whether you are an academic researcher interested in the mathematics of self-excitation or a developer focused on low-latency execution algorithms, I welcome your critique and collaboration.
-
-**Oktay Valiyev** *Quantitative Researcher | Incoming BSc International Economics at Jönköping International Business School*
+- [ ] **Markout Analytics:** Post-trade execution quality metrics (price movement at T+100ms / T+500ms) to empirically validate Killswitch alpha
+- [ ] **LOB Heatmaps:** 2D-density shaders to visualize hidden liquidity walls and spoofing patterns prior to Hawkes-triggered events
+- [ ] **Dynamic Slippage Models:** Non-linear order book depth functions to convert `POTENTIAL_SLIPPAGE` into real-time basis points
+- [ ] **Unit Test Suite:** Deterministic pytest coverage for Hawkes MLE calibration and OFI computation
 
 ---
-*Disclaimer: This software is provided for research and academic purposes only. It does not constitute financial advice. High-frequency algorithm simulation involves significant risk and complexity.*
+
+## 📜 License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+*Disclaimer: This software is provided for research and academic purposes only. It does not constitute financial advice.*
